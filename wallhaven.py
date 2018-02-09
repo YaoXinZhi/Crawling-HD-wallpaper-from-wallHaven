@@ -2,12 +2,14 @@
 # 爬取wallhaven上的的图片，支持自定义搜索关键词，自动爬取并该关键词下所有图片并存入本地电脑。
 # file wallhaven
 # python3.6
+# 18.2.9 import thread
 
 import os
 import requests
 import time 
 import random
 from lxml import etree
+from threading import Thread
 
 keyword = input('Please input the keywords that you want to download :')
 
@@ -57,7 +59,7 @@ class Spider():
             with open(pic_path,'wb') as f:
                 f.write(pic.content)
             end = time.time()
-            print ("Image :{count} has been downla=oaded,cost:",end - start ,'s')
+            print ("Image :{",count,"} has been downla=oaded,cost:",end - start ,'s')
         except Exception as e:
             print (repr(r))
     
@@ -68,17 +70,37 @@ class Spider():
         times = int(count/24 +1)
         j=1
         start = time.time()
-        
+
+# Multithreading
         for i in range(times):
             pic_Urls = self.get_links(i+1)
             start2 = time.time()
+            threads = []
             for item in pic_Urls:
-                self.download(item,j)
+                t = Thread(target = self.download,args = [item,j])
+                t.start()
+                threads.append(t)
                 j += 1
+            for t in threads:
+                t.join()
             end2 = time.time()
-            print ('This page cost:',end2 - start2,'s')
+            print ('This page cost:',end2-start2,'s')
         end = time.time()
-        print ('Total cost :',end-start ,'s')
+        print ('Total cost: ',end-start,'s')
+        
+        
+#single thread
+        #for i in range(times):
+            #pic_Urls = self.get_links(i+1)
+            #start2 = time.time()
+            #for item in pic_Urls:
+                #self.download(item,j)
+                #j += 1
+            #end2 = time.time()
+            #print ('This page cost:',end2 - start2,'s')
+            #time.sleep(random.random())
+        #end = time.time()
+        #print ('Total cost :',end-start ,'s')
         
 spider = Spider()
 spider.main_function()
